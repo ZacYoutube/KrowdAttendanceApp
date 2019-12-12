@@ -194,13 +194,26 @@ class AttendancePage : Fragment() {
                override fun onChanged(t: Any?) {
                    val name = t.toString()!!
 
-                   arr.add(name)
+
                    Log.d("name is ", name)
                    val attendanceResult =
                        FirebaseDatabase.getInstance().getReference("AttendanceResult")
                    val key = attendanceResult.push().key
                    val attendance = AttendanceResult(courseId, name)
                    attendanceResult.child(key!!).setValue(attendance)
+
+                   val recRef = FirebaseDatabase.getInstance().getReference("AttendanceResult");
+                   recRef.orderByChild("courseId").equalTo(courseId).addValueEventListener(
+                       object : ValueEventListener{
+                           override fun onCancelled(p0: DatabaseError) {}
+                           override fun onDataChange(p0: DataSnapshot) {
+                               arr.clear()
+                               for(e in p0.children){
+                                   arr.add(e.getValue(AttendanceResult::class.java)?.name!!)
+                               }
+                           }
+                       }
+                   )
 
                    val sdf = SimpleDateFormat("MM/dd/yyyy hh:mm:ss")
                    val currentDate = sdf.format(Date())
